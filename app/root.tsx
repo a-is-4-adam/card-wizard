@@ -1,4 +1,3 @@
-import { cssBundleHref } from "@remix-run/css-bundle";
 import type { LinksFunction } from "@remix-run/node";
 import {
   Links,
@@ -7,13 +6,19 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useNavigate,
 } from "@remix-run/react";
 
-export const links: LinksFunction = () => [
-  ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
-];
+import { RouterProvider } from "react-aria-components";
+
+import styles from "./tailwind.css";
+import { GlobalToastRegion } from "./components/Toast";
+import { Header } from "./components/Header";
+
+export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
 export default function App() {
+  const navigate = useNavigate();
   return (
     <html lang="en">
       <head>
@@ -22,8 +27,16 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body>
-        <Outlet />
+      <body className="">
+        <RouterProvider navigate={navigate}>
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <div className="flex-grow flex items-stretch">
+              <Outlet />
+            </div>
+          </div>
+          <GlobalToastRegion />
+        </RouterProvider>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
