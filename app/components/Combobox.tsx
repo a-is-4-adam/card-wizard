@@ -81,9 +81,15 @@ export function ComboBox({ onItemFocus, ...props }: ComboBoxProps) {
           <Item
             id={item.slug}
             textValue={item.name}
-            className={({ isHovered, isFocusVisible, isDisabled }) =>
+            className={({
+              isHovered,
+              isFocusVisible,
+              isDisabled,
+              isSelected,
+            }) =>
               clsx("px-4 py-1", {
-                "bg-slate-200": isHovered || isFocusVisible,
+                "text-blue-700": isSelected,
+                "bg-slate-100": isHovered || isFocusVisible,
                 "bg-slate-300": isDisabled,
               })
             }

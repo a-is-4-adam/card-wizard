@@ -61,19 +61,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   });
 }
 
-export const shouldRevalidate: ShouldRevalidateFunction = ({
-  defaultShouldRevalidate,
-  formData,
-}) => {
-  const card = formData?.get("card");
-
-  if (card) {
-    return false;
-  }
-
-  return defaultShouldRevalidate;
-};
-
 export async function action({ request }: LoaderFunctionArgs) {
   let url = new URL(request.url);
   let formData = await request.formData();
@@ -156,7 +143,14 @@ export default function Index() {
           method={cards ? "post" : "get"}
           ref={formRef}
           replace
-          key={defaultBrand}
+          onSubmit={(e) => {
+            const formData = Object.fromEntries(new FormData(e.currentTarget));
+
+            const parsed = requiredFormSchema.safeParse(formData);
+            if (parsed.success) {
+              formRef.current?.reset();
+            }
+          }}
         >
           <ComboBox
             name="brand"
@@ -195,8 +189,8 @@ export default function Index() {
               defaultItems={cards}
               defaultSelectedKey={defaultCard}
               onSelectionChange={(key) => {
+                onSelectionChange("card")(key);
                 if (key) {
-                  onSelectionChange("card")(key);
                   setCurrentCard(key.toString());
                 }
               }}
