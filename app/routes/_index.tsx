@@ -63,12 +63,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   defaultShouldRevalidate,
-  formMethod,
   formData,
 }) => {
   const card = formData?.get("card");
 
-  if (formMethod?.toLowerCase() === "get" && card) {
+  if (card) {
     return false;
   }
 
@@ -106,7 +105,7 @@ export default function Index() {
 
   const submit = useSubmit();
 
-  const [searchParams, seSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const {
     brand: defaultBrand,
     series: defaultSeries,
@@ -115,6 +114,7 @@ export default function Index() {
   } = Object.fromEntries(searchParams.entries());
 
   const formRef = useRef<HTMLFormElement>(null);
+  const [currentCard, setCurrentCard] = React.useState(defaultCard);
 
   React.useEffect(() => {
     if (
@@ -132,9 +132,16 @@ export default function Index() {
   }, [toastId, toastMessage]);
 
   const onSelectionChange = (name: string) => (key: React.Key | undefined) => {
-    if (formRef.current && key) {
-      const formData = new FormData(formRef.current);
+    if (!formRef.current) {
+      return;
+    }
+    const formData = new FormData(formRef.current);
+
+    if (name !== "card") {
       formData.delete("card");
+    }
+
+    if (formRef.current && key) {
       formData.set(name, key.toString());
       submit(formData, { replace: true, method: "get" });
     }
@@ -144,14 +151,12 @@ export default function Index() {
     <div className="flex flex-col items-center w-full">
       <main className="flex-grow w-full space-y-4 px-4 py-4 md:flex md:space-y-0 md:px-4 md:space-x-4 md:max-w-3xl ">
         <Form
-          onChange={() => {
-            console.log("chanage");
-          }}
           id="card-wizard"
           className="space-y-4 flex-grow"
           method={cards ? "post" : "get"}
           ref={formRef}
           replace
+          key={defaultBrand}
         >
           <ComboBox
             name="brand"
@@ -159,6 +164,7 @@ export default function Index() {
             defaultSelectedKey={defaultBrand}
             onSelectionChange={onSelectionChange("brand")}
             defaultItems={brands ?? []}
+            autoFocus
           />
 
           {series ? (
@@ -188,24 +194,18 @@ export default function Index() {
               label="Cards"
               defaultItems={cards}
               defaultSelectedKey={defaultCard}
-              onItemFocus={(key) => {
-                if (key !== searchParams.get("card")) {
-                  seSearchParams(
-                    (prev) => {
-                      prev.set("card", key);
-                      return prev;
-                    },
-                    { replace: true }
-                  );
-                }
+              onSelectionChange={(key) => {
+                onSelectionChange("card")(key);
+                setCurrentCard(key.toString());
               }}
+              onItemFocus={setCurrentCard}
             />
           ) : null}
         </Form>
 
         <div className="w-[384px] flex-shrink-0 mx-auto">
-          {defaultCard && cards ? (
-            <Card card={cards.find((c) => c.slug === defaultCard)} />
+          {currentCard && cards ? (
+            <Card card={cards.find((c) => c.slug === currentCard)} />
           ) : (
             <div className="w-full aspect-[71/100] rounded-lg bg-gray-300"></div>
           )}
@@ -222,7 +222,6 @@ export default function Index() {
           className={getButtonClassName}
           onPress={() => {
             formRef.current?.reset();
-            (formRef.current?.elements[0] as HTMLFormElement).focus();
           }}
         >
           Reset
