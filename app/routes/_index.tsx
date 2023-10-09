@@ -195,8 +195,10 @@ export default function Index() {
               defaultItems={cards}
               defaultSelectedKey={defaultCard}
               onSelectionChange={(key) => {
-                onSelectionChange("card")(key);
-                setCurrentCard(key.toString());
+                if (key) {
+                  onSelectionChange("card")(key);
+                  setCurrentCard(key.toString());
+                }
               }}
               onItemFocus={setCurrentCard}
             />
