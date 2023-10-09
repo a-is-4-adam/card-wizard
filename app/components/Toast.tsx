@@ -59,7 +59,7 @@ function ToastRegion({ state, ...props }: ToastRegionProps) {
     <div
       {...regionProps}
       ref={ref}
-      className="fixed bottom-4 right-4 flex flex-col gap-4"
+      className="fixed top-2 right-4 flex flex-col gap-4"
     >
       {state.visibleToasts.map((toast) => (
         <Toast key={toast.key} toast={toast} state={state} />
