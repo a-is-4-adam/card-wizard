@@ -15,8 +15,6 @@ const { getSession, commitSession, destroySession } =
     // a Cookie from `createCookie` or the CookieOptions to create one
     cookie: {
       name: "__session",
-      domain: "localhost",
-
       httpOnly: true,
       maxAge: 60,
       path: "/",
