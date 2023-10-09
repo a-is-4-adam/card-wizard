@@ -50,9 +50,13 @@ export function Header() {
             </li>
           </ul>
         </nav>
-        <a>
+        <Link
+          to="https://github.com/a-is-4-adam/card-wizard"
+          external
+          target="_blank"
+        >
           <GithubLogo />
-        </a>
+        </Link>
       </div>
     </header>
   );
