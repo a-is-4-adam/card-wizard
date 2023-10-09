@@ -40,6 +40,7 @@ export function Link({
     <RacLink
       {...props}
       href={external ? to : href}
+      target={target}
       onPress={(e) => {
         onPress?.(e);
         if (!external) {
