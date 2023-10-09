@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 
-import type { ShouldRevalidateFunction } from "@remix-run/react";
+import type { ShouldRevalidateFunctionArgs } from "@remix-run/react";
 import {
   Form,
   useLoaderData,
@@ -61,6 +61,27 @@ export async function loader({ request }: LoaderFunctionArgs) {
   });
 }
 
+export function shouldRevalidate({
+  defaultShouldRevalidate,
+  formData,
+  formMethod,
+  currentUrl,
+}: ShouldRevalidateFunctionArgs) {
+  const formEntries = Object.fromEntries(formData?.entries() ?? []);
+
+  const isCardCurrentlySelected = currentUrl.searchParams.get("card");
+
+  if (!isCardCurrentlySelected) {
+    return defaultShouldRevalidate;
+  }
+
+  if (formEntries.card && formMethod === "GET") {
+    return false;
+  }
+
+  return defaultShouldRevalidate;
+}
+
 export async function action({ request }: LoaderFunctionArgs) {
   let url = new URL(request.url);
   let formData = await request.formData();
@@ -101,7 +122,9 @@ export default function Index() {
   } = Object.fromEntries(searchParams.entries());
 
   const formRef = useRef<HTMLFormElement>(null);
-  const [currentCard, setCurrentCard] = React.useState(defaultCard);
+  const [currentCard, setCurrentCard] = React.useState<string | null>(
+    defaultCard ?? null
+  );
 
   React.useEffect(() => {
     if (
@@ -125,6 +148,7 @@ export default function Index() {
     const formData = new FormData(formRef.current);
 
     if (name !== "card") {
+      setCurrentCard(null);
       formData.delete("card");
     }
 
@@ -140,19 +164,12 @@ export default function Index() {
         <Form
           id="card-wizard"
           className="space-y-4 flex-grow"
-          method={cards ? "post" : "get"}
+          method={defaultCard ? "post" : "get"}
           ref={formRef}
           replace
-          onSubmit={(e) => {
-            const formData = Object.fromEntries(new FormData(e.currentTarget));
-
-            const parsed = requiredFormSchema.safeParse(formData);
-            if (parsed.success) {
-              formRef.current?.reset();
-            }
-          }}
         >
           <ComboBox
+            key={defaultBrand ? `${defaultBrand}-brand` : "brand"}
             name="brand"
             label="Brands"
             defaultSelectedKey={defaultBrand}
@@ -163,6 +180,7 @@ export default function Index() {
 
           {series ? (
             <ComboBox
+              key={defaultBrand ? `${defaultBrand}-series` : "series"}
               name="series"
               label="Series"
               defaultSelectedKey={defaultSeries}
@@ -171,9 +189,9 @@ export default function Index() {
               disabledKeys={series.filter((s) => s.disabled).map((s) => s.slug)}
             />
           ) : null}
-
           {releases ? (
             <ComboBox
+              key={defaultSeries ? `${defaultSeries}-release` : "release"}
               name="release"
               label="Releases"
               defaultSelectedKey={defaultRelease}
@@ -181,9 +199,9 @@ export default function Index() {
               defaultItems={releases}
             />
           ) : null}
-
           {cards ? (
             <ComboBox
+              key={defaultRelease ? `${defaultRelease}-card` : "card"}
               name="card"
               label="Cards"
               defaultItems={cards}
@@ -211,7 +229,6 @@ export default function Index() {
         <Button type="submit" form="card-wizard">
           Submit
         </Button>
-
         <Link
           to="./"
           relative="path"

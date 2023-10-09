@@ -74,8 +74,17 @@ type ComboBoxProps = Omit<ComboBoxLayoutProps<Option>, "children"> & {
 };
 
 export function ComboBox({ onItemFocus, ...props }: ComboBoxProps) {
+  const defaultItems = [...(props.defaultItems ?? [])];
   return (
-    <ComboBoxLayout {...props}>
+    <ComboBoxLayout
+      defaultInputValue={
+        props.defaultSelectedKey
+          ? defaultItems?.find((i) => i.slug === props.defaultSelectedKey)
+              ?.name ?? undefined
+          : undefined
+      }
+      {...props}
+    >
       {(item) => {
         return (
           <Item
